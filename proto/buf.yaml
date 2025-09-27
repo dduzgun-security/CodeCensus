@@ -1,0 +1,13 @@
+version: v2
+modules:
+  - path: .
+deps:
+  - buf.build/bufbuild/protovalidate
+lint:
+  use:
+    - BASIC
+    - COMMENTS
+    - FILE_LAYOUT
+breaking:
+  use:
+    - FILE

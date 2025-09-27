@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package codecensus.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/dduzgun-security/codecensus/internal/models/gen/codecensus/v1";
+
+// Asset represents a digital asset in the system
+message Asset {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 255];
+  string description = 3 [(buf.validate.field).string.max_len = 2000];
+  AssetType type = 4 [(buf.validate.field).enum.defined_only = true];
+  repeated string tags = 5 [(buf.validate.field).repeated.max_items = 20];
+  BusinessCriticality business_criticality = 6 [(buf.validate.field).enum.defined_only = true];
+  string repository_url = 7 [(buf.validate.field).string.uri = true];
+  string primary_owner_id = 8 [(buf.validate.field).string.uuid = true];
+  string team_id = 9 [(buf.validate.field).string.uuid = true];
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  AssetStatus status = 12 [(buf.validate.field).enum.defined_only = true];
+}
+
+// User represents a system user
+message User {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string username = 2 [(buf.validate.field).string.min_len = 3, (buf.validate.field).string.max_len = 50];
+  string email = 3 [(buf.validate.field).string.email = true];
+  string name = 4 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 255];
+  UserRole role = 5 [(buf.validate.field).enum.defined_only = true];
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// UserCredentials for login (not stored in database)
+message UserCredentials {
+  string username = 1 [(buf.validate.field).string.min_len = 3, (buf.validate.field).string.max_len = 50];
+  string password = 2 [(buf.validate.field).string.min_len = 8, (buf.validate.field).string.max_len = 128];
+}
+
+// UserRegistration for user registration (not stored in database)
+message UserRegistration {
+  string username = 1 [(buf.validate.field).string.min_len = 3, (buf.validate.field).string.max_len = 50];
+  string email = 2 [(buf.validate.field).string.email = true];
+  string name = 3 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 255];
+  string password = 4 [(buf.validate.field).string.min_len = 8, (buf.validate.field).string.max_len = 128];
+  UserRole role = 5 [(buf.validate.field).enum.defined_only = true];
+}
+
+// Team represents a group of users
+message Team {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 255];
+  string description = 3 [(buf.validate.field).string.max_len = 2000];
+  string leader_id = 4 [(buf.validate.field).string.uuid = true];
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// TeamMember represents the relationship between a user and team
+message TeamMember {
+  string team_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 2 [(buf.validate.field).string.uuid = true];
+  TeamMemberRole role = 3 [(buf.validate.field).enum.defined_only = true];
+}
+
+// SearchAssetRequest for asset search functionality
+message SearchAssetRequest {
+  string query = 1 [(buf.validate.field).string.max_len = 500];
+  AssetType type = 2;
+  BusinessCriticality business_criticality = 3;
+  string owner_id = 4 [(buf.validate.field).string.uuid = true];
+  string team_id = 5 [(buf.validate.field).string.uuid = true];
+  repeated string tags = 6 [(buf.validate.field).repeated.max_items = 10];
+  int32 limit = 7 [(buf.validate.field).int32.gte = 1, (buf.validate.field).int32.lte = 100];
+  int32 offset = 8 [(buf.validate.field).int32.gte = 0];
+}
+
+// SearchAssetResponse for asset search results
+message SearchAssetResponse {
+  repeated Asset assets = 1;
+  int32 total_count = 2;
+  int32 offset = 3;
+  int32 limit = 4;
+}
+
+// Enums
+enum AssetType {
+  ASSET_TYPE_UNSPECIFIED = 0;
+  ASSET_TYPE_CODE = 1;
+  ASSET_TYPE_INFRASTRUCTURE = 2;
+  ASSET_TYPE_APPLICATION = 3;
+  ASSET_TYPE_SYSTEM = 4;
+}
+
+enum BusinessCriticality {
+  BUSINESS_CRITICALITY_UNSPECIFIED = 0;
+  BUSINESS_CRITICALITY_LOW = 1;
+  BUSINESS_CRITICALITY_MEDIUM = 2;
+  BUSINESS_CRITICALITY_HIGH = 3;
+  BUSINESS_CRITICALITY_CRITICAL = 4;
+}
+
+enum AssetStatus {
+  ASSET_STATUS_UNSPECIFIED = 0;
+  ASSET_STATUS_ACTIVE = 1;
+  ASSET_STATUS_DEPRECATED = 2;
+  ASSET_STATUS_ARCHIVED = 3;
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_VIEWER = 1;
+  USER_ROLE_USER = 2;
+  USER_ROLE_ADMIN = 3;
+}
+
+enum TeamMemberRole {
+  TEAM_MEMBER_ROLE_UNSPECIFIED = 0;
+  TEAM_MEMBER_ROLE_MEMBER = 1;
+  TEAM_MEMBER_ROLE_LEAD = 2;
+}
